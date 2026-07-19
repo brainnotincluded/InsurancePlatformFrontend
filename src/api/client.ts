@@ -70,7 +70,21 @@ async function request<T>(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const detail = (data as { detail?: unknown }).detail;
-    const msg = typeof detail === 'string' ? detail : `Ошибка ${res.status}`;
+    let msg: string;
+    if (typeof detail === 'string') {
+      msg = detail;
+    } else if (Array.isArray(detail) && detail.length > 0) {
+      // Pydantic 422: [{loc, msg}, ...] → читаемая строка
+      msg = detail
+        .map((d: { loc?: string[]; msg?: string }) => {
+          const field = d.loc?.filter(l => l !== 'body').join('.');
+          return field ? `${field}: ${d.msg}` : d.msg;
+        })
+        .filter(Boolean)
+        .join('; ') || `Ошибка ${res.status}`;
+    } else {
+      msg = `Ошибка ${res.status}`;
+    }
     throw new ApiError(res.status, msg);
   }
   return data as T;

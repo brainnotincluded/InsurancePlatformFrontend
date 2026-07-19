@@ -53,7 +53,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
   if (!isOpen) return null;
 
-  const normalizedPhone = phone.replace(/\D/g, '');
+  const normalizedPhone = (() => {
+    const d = phone.replace(/\D/g, '');
+    // RU: 8XXXXXXXXXX -> 7XXXXXXXXXX (бэкенд хранит OTP под 7...)
+    return d.length === 11 && d.startsWith('8') ? '7' + d.slice(1) : d;
+  })();
 
   const handleRequestCode = async () => {
     setError(null);
@@ -63,7 +67,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     }
     setBusy(true);
     try {
-      await api.requestCode(phone);
+      await api.requestCode(normalizedPhone);
       setCodeSent(true);
       // Dev-режим: SMSC не настроен, код читаем из Redis через debug-эндпоинт
       try {
@@ -86,7 +90,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     setError(null);
     setBusy(true);
     try {
-      await login(phone, code, loginPassword);
+      await login(normalizedPhone, code, loginPassword);
       onClose();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Ошибка входа');
@@ -104,7 +108,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     setBusy(true);
     try {
       await register({
-        phone,
+        phone: normalizedPhone,
         code,
         email: regEmail,
         password: regPassword,
