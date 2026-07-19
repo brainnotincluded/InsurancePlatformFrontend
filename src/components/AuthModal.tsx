@@ -295,6 +295,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
             <div className="flex items-start gap-2.5">
               <button
+                type="button"
                 onClick={() => setAgreed(!agreed)}
                 className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                   agreed ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
@@ -316,7 +317,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
             <button
               onClick={handleRegister}
-              disabled={busy || code.length !== 6 || !regEmail || !regPassword || !regReferral}
+              disabled={busy || code.length !== 6 || !regEmail || !regPassword || !regReferral || !agreed}
               className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-button transition-all active:scale-[0.98] disabled:opacity-50"
             >
               ЗАРЕГИСТРИРОВАТЬСЯ
